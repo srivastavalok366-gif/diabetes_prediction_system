@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Diabetes Prediction System</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+  <div class="top-bar">
+    <div class="brand">
+      <span class="mark">DX-01</span>
+      <h1>Diabetes Prediction System</h1>
+    </div>
+    <div class="subtitle">ML risk assessment · 8 clinical features</div>
+  </div>
+
+  <div class="layout">
+
+    <!-- Input panel -->
+    <div class="panel">
+      <h2>Patient Measurements</h2>
+      <form action="/predict" method="POST">
+        <div class="field-grid">
+          {% for key, label, placeholder, min_v, max_v, step in fields %}
+          <div class="field">
+            <label for="{{ key }}">{{ label }}</label>
+            <input
+              type="number"
+              id="{{ key }}"
+              name="{{ key }}"
+              placeholder="{{ placeholder }}"
+              min="{{ min_v }}"
+              max="{{ max_v }}"
+              step="{{ step }}"
+              value="{{ submitted[key] if submitted else '' }}"
+              required
+            >
+          </div>
+          {% endfor %}
+        </div>
+
+        <div class="submit-row">
+          <button type="submit" class="predict-btn">Run prediction</button>
+        </div>
+
+        {% if error %}
+        <div class="error-msg">{{ error }}</div>
+        {% endif %}
+      </form>
+    </div>
+
+    <!-- Result panel -->
+    <div class="panel result-panel">
+      <h2>Risk Assessment</h2>
+
+      {% if result %}
+        {% set circumference = 251.33 %}
+        {% set offset = circumference * (1 - result.probability / 100) %}
+        <div class="gauge-wrap">
+          <svg width="200" height="120" viewBox="0 0 200 120">
+            <path d="M 20 100 A 80 80 0 0 1 180 100"
+                  fill="none" stroke="#DCE6E4" stroke-width="14" stroke-linecap="round"/>
+            <path d="M 20 100 A 80 80 0 0 1 180 100"
+                  fill="none"
+                  stroke="{{ '#D8562E' if result.prediction == 1 else '#1E8C7C' }}"
+                  stroke-width="14"
+                  stroke-linecap="round"
+                  stroke-dasharray="{{ circumference }}"
+                  stroke-dashoffset="{{ offset }}"/>
+          </svg>
+          <div class="gauge-readout" style="color: {{ '#D8562E' if result.prediction == 1 else '#1E8C7C' }};">
+            {{ result.probability }}%
+          </div>
+          <div class="gauge-label">MODEL-ESTIMATED LIKELIHOOD</div>
+        </div>
+
+        <div style="display:flex; justify-content:center;">
+          <div class="risk-tag {{ 'high' if result.prediction == 1 else 'low' }}">
+            {{ result.label }}
+          </div>
+        </div>
+      {% else %}
+        <div class="placeholder-state">
+          <div class="icon">— · —</div>
+          Enter the patient's clinical measurements and run a prediction<br>to see the estimated diabetes risk here.
+        </div>
+      {% endif %}
+
+      <div class="disclaimer">
+        This tool is a machine learning demo trained on clinical feature patterns.
+        It is not a medical device and must not be used for real diagnosis —
+        always consult a qualified healthcare professional.
+      </div>
+    </div>
+
+  </div>
+
+  <footer>Diabetes Prediction System · Flask + scikit-learn</footer>
+
+</body>
+</html>
