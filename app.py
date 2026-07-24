@@ -89,10 +89,12 @@ def predict():
 
 if __name__ == "__main__":
     load_artifacts()
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=False)
 else:
     # Also load artifacts if imported by a WSGI server
     try:
         load_artifacts()
     except FileNotFoundError:
         pass
+
